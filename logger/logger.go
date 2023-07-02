@@ -137,12 +137,12 @@ func newLogger(cfg LoggingConfig) *logrus.Logger {
 			ForceColors:      false,
 		})
 
-		var appname string
+		var appName string
 		if cfg.PTAppName == "" {
 			filename, _ := os.Executable()
-			appname = filepath.Base(filename)
+			appName = filepath.Base(filename)
 		} else {
-			appname = cfg.PTAppName
+			appName = cfg.PTAppName
 		}
 
 		var hook *logruspapertrail.Hook
@@ -150,7 +150,7 @@ func newLogger(cfg LoggingConfig) *logrus.Logger {
 			Host:     "logs2.papertrailapp.com",
 			Port:     39413,
 			Hostname: "bigdata01",
-			Appname:  appname,
+			Appname:  appName,
 		})
 
 		switch strings.ToUpper(cfg.PTLogLevel) {
