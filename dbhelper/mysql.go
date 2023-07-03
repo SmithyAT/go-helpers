@@ -3,7 +3,6 @@ package dbhelper
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/smithyat/go-helpers/logger"
 	"regexp"
 	"strings"
 	"time"
@@ -41,8 +40,7 @@ func MySqlDSNMaskPassword(s string) string {
 func MySQLConnect(dsn string) (db *sqlx.DB, disconnect func(), dbErr error) {
 	mysqlDB, err := sqlx.Connect("mysql", dsn)
 	if err != nil {
-		dbErr = fmt.Errorf("Failed to connect to MySQL database: %v [%s]", err, logger.Trace())
-		return nil, nil, dbErr
+		return nil, nil, err
 	}
 
 	mysqlDB.SetConnMaxLifetime(time.Minute * 3)
