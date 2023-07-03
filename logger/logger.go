@@ -16,7 +16,8 @@ import (
 )
 
 // Log is the global logger
-var Log *logrus.Logger
+var Log *logrus.Entry
+var BaseLogger *logrus.Logger
 
 // LoggingConfig represents the configuration for the logging mechanism of the application.
 type LoggingConfig struct {
@@ -54,7 +55,8 @@ func Trace() string {
 
 // InitLogger Initialize a new logger and set it as the global logger
 func InitLogger(cfg LoggingConfig) {
-	Log = newLogger(cfg)
+	BaseLogger = newLogger(cfg)
+	Log = BaseLogger.WithFields(logrus.Fields{})
 }
 
 // newLogger Initialize a new logger
