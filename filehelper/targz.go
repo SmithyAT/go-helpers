@@ -3,10 +3,58 @@ package filehelper
 import (
 	"archive/tar"
 	"compress/gzip"
+	"github.com/sirupsen/logrus"
+	"github.com/smithyat/go-helpers/logger"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+// ExtractAllTarGzInDirectory extracts all tar.gz files in the given directory to the given destination directory.
+func ExtractAllTarGzInDirectory(srcDir, destDir string, logPtr *logrus.Entry) {
+	_ = filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			if logPtr != nil {
+				logPtr.Errorf("Failed to walk path %s: %v [%s]", path, err, logger.Trace())
+			}
+			return nil
+		}
+
+		if strings.HasSuffix(info.Name(), ".tar.gz") {
+			tarGzFile, err := os.Open(path)
+			if err != nil {
+				if logPtr != nil {
+					logPtr.Errorf("Failed to open file %s: %v [%s]", path, err, logger.Trace())
+				}
+				return nil
+			}
+			defer func(targzfile *os.File) {
+				_ = tarGzFile.Close()
+			}(tarGzFile)
+
+			logger.Log.Infof("Extracting file %s", path)
+			err = ExtractTarGz(tarGzFile, destDir)
+			if err != nil {
+				if logPtr != nil {
+					logPtr.Errorf("Failed to extract file %s: %v [%s]", path, err, logger.Trace())
+				}
+				return nil
+			}
+			logger.Log.Infof("Extracted file %s", path)
+
+			err = os.Remove(path)
+			if err != nil {
+				if logPtr != nil {
+					logPtr.Errorf("Failed to remove file %s: %v [%s]", path, err, logger.Trace())
+				}
+				return nil
+			}
+
+		}
+		return nil
+	})
+}
 
 // ExtractTarGz extracts a tar.gz file to the given destination directory.
 func ExtractTarGz(gzipStream io.Reader, dest string) error {
