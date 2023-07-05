@@ -3,7 +3,7 @@ package sftpclient
 import "github.com/pkg/sftp"
 
 // SftpDeleteFile function is used to delete a file at a specified path using an SFTP client.
-// It takes an sftp.Client type instance and a path string as parameters.
+// It takes a sftp.Client type instance and a path string as parameters.
 //
 // Returns an error if any issue occurs while deleting the file.
 //
@@ -21,8 +21,6 @@ import "github.com/pkg/sftp"
 //	}
 //
 // If successfully executed, the function will delete the specified file in the SFTP server.
-//
-//goland:noinspection GoUnusedExportedFunction
 func SftpDeleteFile(client *sftp.Client, path string) error {
 	return client.Remove(path)
 }

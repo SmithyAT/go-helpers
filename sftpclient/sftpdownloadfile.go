@@ -19,8 +19,6 @@ import (
 // localPath: The full path on the local system where the file will be created.
 //
 // Returns an error if any file operations fail, otherwise nil.
-//
-//goland:noinspection GoUnusedExportedFunction
 func SftpDownloadFile(client *sftp.Client, remotePath, localPath string) (retErr error) {
 	// Open remote file
 	srcFile, err := client.Open(remotePath)

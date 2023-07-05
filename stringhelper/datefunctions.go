@@ -48,7 +48,7 @@ func ExtractDate(inputString string) (date string, err error) {
 //	fmt.Println(day)   // Outputs: "25"
 func SplitDate(date string) (year string, month string, day string, err error) {
 	if len(date) != 8 {
-		return "", "", "", errors.New("date should be in format YYYYMMDD --")
+		return "", "", "", errors.New("date should be in format YYYYMMDD")
 	}
 
 	year = date[0:4]

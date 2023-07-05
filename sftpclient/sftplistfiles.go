@@ -33,8 +33,6 @@ import (
 // Returns:
 // []os.FileInfo - a slice containing os.FileInfo objects
 // error - an error object that reports why the operation failed, or nil if it succeeded
-//
-//goland:noinspection GoUnusedExportedFunction
 func SftpListFiles(client *sftp.Client, path string) ([]os.FileInfo, error) {
 	return client.ReadDir(path)
 }

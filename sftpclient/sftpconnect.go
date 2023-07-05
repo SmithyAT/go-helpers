@@ -25,8 +25,6 @@ import (
 //
 //	*sftp.Client: The connected SFTP client
 //	error: Any errors encountered while connecting to the server
-//
-//goland:noinspection GoUnusedExportedFunction
 func SftpConnect(user, password, addr string, key []byte) (*sftp.Client, error) {
 	var authMethod ssh.AuthMethod
 

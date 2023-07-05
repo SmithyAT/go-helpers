@@ -19,8 +19,6 @@ import (
 // and errors that occur while closing the local or remote file.
 //
 // The function returns the error value from the last operation (if any), or nil if the operation was successful.
-//
-//goland:noinspection GoUnusedExportedFunction
 func SftpUploadFile(client *sftp.Client, localPath, remotePath string) (retErr error) {
 	// Open local file
 	localFile, err := os.Open(localPath)
