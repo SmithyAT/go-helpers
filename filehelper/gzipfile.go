@@ -46,3 +46,35 @@ func GzipFile(FilePath string, outputFilePath string) error {
 
 	return nil
 }
+
+// UnzipFile decompresses a gzip file
+func UnzipFile(inputFilePath string, outputFilePath string) error {
+	// Open the gzip file
+	inputFile, err := os.Open(inputFilePath)
+	if err != nil {
+		return err
+	}
+	defer inputFile.Close()
+
+	// Create a new gzip reader
+	gzipReader, err := gzip.NewReader(inputFile)
+	if err != nil {
+		return err
+	}
+	defer gzipReader.Close()
+
+	// Create the output file
+	outputFile, err := os.Create(outputFilePath)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	// Copy the gzip content to the output file
+	_, err = io.Copy(outputFile, gzipReader)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
