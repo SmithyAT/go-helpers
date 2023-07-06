@@ -5,47 +5,24 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"net"
-	"regexp"
-	"strings"
 	"time"
 )
 
-// PgSqlConfig is the configuration for the MySQL database
-type PgSqlConfig struct {
-	Username string
-	Password string
-	Host     string
-	Port     string
-	Database string
-}
-
-// PgSqlDSN returns the DSN string for the MySQL database
-func PgSqlDSN(dbConfig PgSqlConfig) (dsn string) {
+// PgLogDSN returns the DSN string for the MySQL database with the password masked
+func PgLogDSN(dbConfig DbConfig) (dsn string) {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		dbConfig.Username, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database)
-}
-
-// PgSqlDSNMaskPassword returns the DSN string for the Postgres database with the password masked
-func PgSqlDSNMaskPassword(s string) string {
-	re, err := regexp.Compile(`(.*?):(.*?)@`)
-	if err != nil {
-		return ""
-	}
-
-	return re.ReplaceAllStringFunc(s, func(str string) string {
-		parts := strings.Split(str, ":")
-		return fmt.Sprintf("%s:%s@", parts[0], strings.Repeat("*", len(parts[1])-1)) // We subtract 1 from length to account for the "@" character
-	})
+		dbConfig.Username, "*****", dbConfig.Host, dbConfig.Port, dbConfig.Database)
 }
 
 // PgSQLConnect connects to the Postgres database and returns a pointer to the connection
-func PgSQLConnect(dbConfig PgSqlConfig) (db *sqlx.DB, disconnect func(), dbErr error) {
-	err := connCheck(dbConfig)
+func PgSQLConnect(dbConfig DbConfig) (db *sqlx.DB, disconnect func(), dbErr error) {
+	err := connCheck(dbConfig.Host, dbConfig.Port)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	dsn := PgSqlDSN(dbConfig)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+		dbConfig.Username, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database)
 
 	pgDB, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
@@ -59,8 +36,8 @@ func PgSQLConnect(dbConfig PgSqlConfig) (db *sqlx.DB, disconnect func(), dbErr e
 
 // connCheck make a quick tcp connection test ot the database host:port to see if it is available of not
 // This is a workaround because the postgres driver has no timeout parameter and needs 150s to throw an error
-func connCheck(dbConfig PgSqlConfig) error {
-	conn, err := net.DialTimeout("tcp", net.JoinHostPort(dbConfig.Host, dbConfig.Port), time.Second*5)
+func connCheck(host, port string) error {
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), time.Second*5)
 	if err != nil {
 		return err
 	}
