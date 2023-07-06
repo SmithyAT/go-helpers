@@ -8,13 +8,34 @@ import (
 	"time"
 )
 
-// PgLogDSN returns the DSN string for the MySQL database with the password masked
+// PgLogDSN constructs a Postgres Data Source Name (DSN) from the given DbConfig.
+// However, for security reasons, it intentionally obscures the password
+// within the DSN using a placeholder. It returns the DSN as a string.
+//
+// The DbConfig struct should contain information like Username, Host, Port,
+// and Database name.
+//
+// The format of the returned DSN string is:
+// "postgres://username:*****@host:port/database"
+//
+// Usage Example:
+//
+// cfg := DbConfig{Username: "user1", Host: "localhost", Port: "5432", Database: "mydb"}
+// dsn := PgLogDSN(cfg)
+// fmt.Println(dsn)  // Output: "postgres://user1:*****@localhost:5432/mydb"
 func PgLogDSN(dbConfig DbConfig) (dsn string) {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		dbConfig.Username, "*****", dbConfig.Host, dbConfig.Port, dbConfig.Database)
 }
 
-// PgSQLConnect connects to the Postgres database and returns a pointer to the connection
+// PgSQLConnect takes a DbConfig structure as input and establishes a connection to
+// a PostgreSQL database using the details provided in the provided configuration.
+// If successful, the function returns a pointer to the sqlx.DB object representing
+// the database connection, a function that can be called to disconnect from the
+// database, and a nil error.
+// If unsuccessful (e.g., because the connection could not be established or the
+// connection check failed), the function returns a nil pointer, a nil disconnect
+// function, and an error describing the failure.
 func PgSQLConnect(dbConfig DbConfig) (db *sqlx.DB, disconnect func(), dbErr error) {
 	err := connCheck(dbConfig.Host, dbConfig.Port)
 	if err != nil {
