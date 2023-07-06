@@ -6,7 +6,9 @@ import (
 	"os"
 )
 
-// GzipFile compresses a file to a gzip file
+// GzipFile compresses a file to a gzip file.
+// It takes the file at 'FilePath' and compresses it to a gzip file at 'outputFilePath'.
+// If there is an error during the process, it will be returned. No error means successful compression.
 func GzipFile(FilePath string, outputFilePath string) error {
 	// Open the file for reading
 	tarFile, err := os.Open(FilePath)
@@ -47,28 +49,35 @@ func GzipFile(FilePath string, outputFilePath string) error {
 	return nil
 }
 
-// UnzipFile decompresses a gzip file
+// UnzipFile decompresses a gzip file located at inputFilePath to an
+// output file at outputFilePath. It returns an error if any issue is encountered.
 func UnzipFile(inputFilePath string, outputFilePath string) error {
 	// Open the gzip file
 	inputFile, err := os.Open(inputFilePath)
 	if err != nil {
 		return err
 	}
-	defer inputFile.Close()
+	defer func(inputFile *os.File) {
+		_ = inputFile.Close()
+	}(inputFile)
 
 	// Create a new gzip reader
 	gzipReader, err := gzip.NewReader(inputFile)
 	if err != nil {
 		return err
 	}
-	defer gzipReader.Close()
+	defer func(gzipReader *gzip.Reader) {
+		_ = gzipReader.Close()
+	}(gzipReader)
 
 	// Create the output file
 	outputFile, err := os.Create(outputFilePath)
 	if err != nil {
 		return err
 	}
-	defer outputFile.Close()
+	defer func(outputFile *os.File) {
+		_ = outputFile.Close()
+	}(outputFile)
 
 	// Copy the gzip content to the output file
 	_, err = io.Copy(outputFile, gzipReader)
