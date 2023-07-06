@@ -59,6 +59,23 @@ func InitLogger(cfg LoggingConfig) {
 	Log = BaseLogger.WithFields(logrus.Fields{})
 }
 
+// InitMiniLogger Initialize a new logger with minimal configuration
+func InitMiniLogger(debug bool) {
+	InitLogger(LoggingConfig{
+		Debug:        debug,
+		Logfile:      "",
+		MaxSize:      10,
+		MaxAge:       10,
+		Backup:       10,
+		PTLogLevel:   "",
+		PTAppName:    "",
+		PTSourceHost: "",
+		PTHost:       "",
+		PTPort:       0,
+		FieldsOrder:  nil,
+	})
+}
+
 // newLogger Initialize a new logger
 func newLogger(cfg LoggingConfig) *logrus.Logger {
 	newLogger := logrus.New()
