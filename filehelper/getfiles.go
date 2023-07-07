@@ -3,7 +3,6 @@ package filehelper
 import (
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // FileInfo represents information about a file.
@@ -12,22 +11,27 @@ type FileInfo struct {
 	Name string
 }
 
-// GetFiles returns a slice of FileInfo items of a given directory,
-// where each FileInfo contains the path and name of each file that meets the specified criteria.
-// If a file extension is specified in the fileExtension parameter, then only files with that
-// extension will be included in the result.
-// If the fileExtension parameter is an empty string, the function will return info about all files, regardless of extension.
-// The function only looks directly in the specified directory and does not traverse any subdirectories.
+// GetFiles scans the provided directory and returns files that match the provided pattern.
+// The function returns a slice of FileInfo structures, each representing information about a file,
+// and an error when applicable. Each FileInfo contains the file's path and name.
 //
 // Parameters:
-// directory: The directory to scan for files.
-// fileExtension: The file extension to filter by. Leave this an empty string
-// to include all files irrespective of their extension.
+//   - directory: The directory path to scan for files.
+//   - pattern: The pattern to match against file names. This uses Go's `filepath.Match`
+//     function's pattern syntax.
 //
-// Return:
-// Slice of FileInfo: It contains information about all matching files.
-// error: The function will return an error if there was an issue reading the directory.
-func GetFiles(directory, fileExtension string) ([]FileInfo, error) {
+// Returns:
+//   - A slice of FileInfo structures. Each FileInfo consists of a Path and a Name.
+//   - An error if an error occurs while reading the directory or matching files,
+//     otherwise nil.
+//
+// This function does not look for files in subdirectories of the provided directory,
+// only at the topmost level. If the pattern doesn't match any file, this function
+// returns an empty slice and nil.
+//
+// The returned Path in each FileInfo is combining the directory path and the file name.
+// The Name in each FileInfo is the name of the file (not including the path).
+func GetFiles(directory, pattern string) ([]FileInfo, error) {
 	var files []FileInfo
 
 	fileInfo, err := os.ReadDir(directory)
@@ -36,36 +40,41 @@ func GetFiles(directory, fileExtension string) ([]FileInfo, error) {
 		return nil, err
 	}
 
-	// Ensure extensions start with '.'
-	if !strings.HasPrefix(fileExtension, ".") && fileExtension != "" {
-		fileExtension = "." + fileExtension
-	}
-
 	for _, info := range fileInfo {
 		if !info.IsDir() {
-			if fileExtension == "" {
+
+			if match, _ := filepath.Match(pattern, info.Name()); match {
 				files = append(files, FileInfo{Path: filepath.Join(directory, info.Name()), Name: info.Name()})
-			} else {
-				if strings.EqualFold(filepath.Ext(info.Name()), fileExtension) {
-					files = append(files, FileInfo{Path: filepath.Join(directory, info.Name()), Name: info.Name()})
-				}
 			}
+
 		}
 	}
 
 	return files, nil
 }
 
-// GetFilesRecursive scans the provided directory and returns a list of FileInfo structured
-// data for each file with the provided file extension. If the file extension is
-// empty, the function returns a list of all files in the directory. For any errors
-// encountered during filepath walking it returns an error. Here, FileInfo is a
-// custom struct that contains information on a file, such as its path and name.
-// If an extension is provided that doesn't start with a '.', the function prepends a '.' to it.
-// Example:
-// GetFiles("/home/user/documents", "txt")
-// This would return FileInfo for all text files in /home/user/documents.
-func GetFilesRecursive(directory, fileExtension string) ([]FileInfo, error) {
+// GetFilesRecursive is a function that traverses a provided directory recursively
+// and returns files matching a given pattern.
+//
+// It takes two parameters:
+// directory - It is the directory where to start the search. This function will recursively search in this directory and all of its subdirectories.
+// pattern - The pattern to match file names against. Only the files that match this pattern will be returned.
+//
+// The function returns a list of FileInfo objects and an error object. FileInfo object includes the full path and the name of the file.
+// The error object will be non-nil if there was an error during the function's execution.
+//
+// Usage:
+//
+// files, err := GetFilesRecursive("/Users/example_user", "*.go")
+//
+//	if err != nil {
+//	   log.Fatal(err)
+//	}
+//
+//	for _, file := range files {
+//	    fmt.Println(file.Path)
+//	}
+func GetFilesRecursive(directory, pattern string) ([]FileInfo, error) {
 	var files []FileInfo
 
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
@@ -73,17 +82,9 @@ func GetFilesRecursive(directory, fileExtension string) ([]FileInfo, error) {
 			return err
 		}
 
-		if fileExtension == "" {
-			if !info.IsDir() {
-				files = append(files, FileInfo{Path: path, Name: info.Name()})
-			}
-		} else {
-			// Ensure extensions start with '.'
-			if !strings.HasPrefix(fileExtension, ".") {
-				fileExtension = "." + fileExtension
-			}
-			if !info.IsDir() && strings.EqualFold(filepath.Ext(info.Name()), fileExtension) {
-				files = append(files, FileInfo{Path: path, Name: info.Name()})
+		if !info.IsDir() {
+			if match, _ := filepath.Match(pattern, info.Name()); match {
+				files = append(files, FileInfo{Path: filepath.Join(directory, info.Name()), Name: info.Name()})
 			}
 		}
 
